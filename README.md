@@ -13,6 +13,7 @@ with procedurally synthesised sound (no audio assets at all).
 | --- | --- |
 | Drag horizontally (anywhere) | Spin the shield. A full screen sweep is a bit more than one rotation. |
 | Tap | Swap which half of the shield is cyan and which is magenta. |
+| Second finger tap (while dragging) | Same swap, without letting go of the spin. |
 | Tap the ♪ badge (top right) | Mute / unmute. |
 | Back | Bail out to the title screen. |
 

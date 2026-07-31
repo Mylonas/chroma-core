@@ -533,6 +533,9 @@ class Game(ctx: Context, private val sfx: Sfx) {
         if (!touching) return
         val dx = x - touchX
         touchX = x
+        // A finger lifting out of a multi-touch shuffles the pointer indices,
+        // which shows up here as an impossible jump. Swallow it.
+        if (abs(dx) > w * 0.35f) return
         touchDrag += abs(dx) + abs(y - downY) * 0.15f
         // Horizontal drag anywhere on screen spins the shield: thumb-friendly,
         // and a full sweep of the screen is a bit more than a full rotation.
@@ -557,6 +560,22 @@ class Game(ctx: Context, private val sfx: Sfx) {
                 shieldPulse = max(shieldPulse, 0.5f)
                 sfx.play("flip", 0.7f)
             }
+            Phase.OVER -> if (overTimer > 0.7f) startRun()
+        }
+    }
+
+    /**
+     * A second finger tapping down flips the colours without interrupting the
+     * drag — you need both hands' worth of control once the run speeds up.
+     */
+    fun onSecondFinger() {
+        when (phase) {
+            Phase.PLAY -> {
+                flipped = !flipped
+                shieldPulse = max(shieldPulse, 0.5f)
+                sfx.play("flip", 0.7f)
+            }
+            Phase.TITLE -> startRun()
             Phase.OVER -> if (overTimer > 0.7f) startRun()
         }
     }

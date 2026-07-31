@@ -56,6 +56,7 @@ class GameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback 
         synchronized(lock) {
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> game.onDown(event.x, event.y)
+                MotionEvent.ACTION_POINTER_DOWN -> game.onSecondFinger()
                 MotionEvent.ACTION_MOVE -> game.onMove(event.x, event.y)
                 MotionEvent.ACTION_UP -> game.onUp(event.x, event.y)
                 MotionEvent.ACTION_CANCEL -> game.onUp(event.x, event.y)
