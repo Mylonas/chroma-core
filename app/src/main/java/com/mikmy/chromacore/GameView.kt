@@ -2,6 +2,7 @@ package com.mikmy.chromacore
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
@@ -70,6 +71,8 @@ class GameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback 
         running = true
         thread = Thread {
             var last = System.nanoTime()
+            var frames = 0
+            var fpsWindow = 0f
             while (running) {
                 if (paused) {
                     try {
@@ -107,6 +110,15 @@ class GameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback 
                     synchronized(lock) {
                         game.update(dt)
                         game.draw(canvas)
+                    }
+                    if (BuildConfig.DEBUG) {
+                        frames++
+                        fpsWindow += dt
+                        if (fpsWindow >= 2f) {
+                            Log.d("ChromaCore", "fps=%.1f".format(frames / fpsWindow))
+                            frames = 0
+                            fpsWindow = 0f
+                        }
                     }
                 } finally {
                     try {
