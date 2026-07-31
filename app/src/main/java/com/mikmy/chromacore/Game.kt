@@ -298,13 +298,15 @@ class Game(ctx: Context, private val sfx: Sfx) {
     private fun resolve(o: Orb) {
         val halfSpan = shieldHalfSpan()
         val diff = angDiff(o.ang, shieldAng)
-        if (abs(diff) > halfSpan) return   // sailed past the shield, heading for the core
+        val anyColour = o.kind == WILD || o.kind == GOLD
+        val verdict = Rules.outcome(
+            diff, halfSpan, o.col, anyColour, overdrive > 0f, flipped, colA, colB
+        )
+        if (verdict == Rules.OUTCOME_MISS) return  // sails past, heading for the core
 
-        val rightSide = diff > 0f
-        val sideCol = sideColor(rightSide)
-        val matched = overdrive > 0f || o.kind == WILD || o.kind == GOLD || o.col == sideCol
+        val sideCol = sideColor(Rules.onRightHalf(diff))
 
-        if (matched) block(o, abs(diff), halfSpan, sideCol)
+        if (verdict == Rules.OUTCOME_BLOCK) block(o, abs(diff), halfSpan, sideCol)
         else {
             o.dead = true
             burst(polarX(o.ang, o.r), polarY(o.ang, o.r), o.col, 20, minDim * 0.40f)
@@ -319,12 +321,9 @@ class Game(ctx: Context, private val sfx: Sfx) {
         combo++
         bestComboRun = max(bestComboRun, combo)
 
-        val perfect = abs(absDiff - halfSpan * 0.5f) < perfectWindow
-        val mult = min(10, 1 + combo / 8)
+        val perfect = Rules.isPerfect(absDiff, halfSpan, perfectWindow)
         val base = if (o.kind == GOLD) 100 else 10
-        var gain = base * mult
-        if (perfect) gain *= 2
-        if (overdrive > 0f) gain *= 2
+        val gain = Rules.points(base, combo, perfect, overdrive > 0f)
         score += gain
 
         val ox = polarX(o.ang, shieldR)
@@ -434,13 +433,7 @@ class Game(ctx: Context, private val sfx: Sfx) {
     private fun polarX(a: Float, r: Float) = cx + cos(a) * r
     private fun polarY(a: Float, r: Float) = cy + sin(a) * r
 
-    private fun angDiff(a: Float, b: Float): Float {
-        var d = a - b
-        val tau = (PI * 2).toFloat()
-        while (d > PI) d -= tau
-        while (d < -PI) d += tau
-        return d
-    }
+    private fun angDiff(a: Float, b: Float): Float = Rules.angDiff(a, b)
 
     private fun tap(ms: Long) {
         val v = vibrator ?: return
@@ -867,7 +860,7 @@ class Game(ctx: Context, private val sfx: Sfx) {
         c.drawText("BEST $best", w * 0.06f, top + minDim * 0.035f, p)
 
         if (combo > 1) {
-            val mult = min(10, 1 + combo / 8)
+            val mult = Rules.multiplier(combo)
             val hot = combo >= comboForOverdrive
             p.textAlign = Paint.Align.CENTER
             p.typeface = fontBold
