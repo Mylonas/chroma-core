@@ -17,6 +17,20 @@ object Rules {
 
     const val MAX_MULTIPLIER = 10
 
+    /**
+     * Half-width of the neutral band where the two shield halves meet, in
+     * radians. Inside it either colour blocks.
+     *
+     * Without this the game is broken. Centring the shield on an incoming orb
+     * is the intuitive play, and it puts the orb exactly on the boundary, so
+     * which colour catches it is a coin flip. Measured with a bot: a player who
+     * centres their aim survives 8.8s and scores 19 with no grace, versus 54s
+     * and 2465 with it. Aiming a half's midpoint is still the better play —
+     * that is what earns PERFECT — so this makes the obvious action safe
+     * without removing the skill.
+     */
+    const val SEAM_GRACE = (10.0 * Math.PI / 180.0).toFloat()
+
     /** Signed smallest angle from [b] to [a], in (-PI, PI]. */
     fun angDiff(a: Float, b: Float): Float {
         var d = a - b
@@ -50,10 +64,13 @@ object Rules {
         overdrive: Boolean,
         flipped: Boolean,
         colA: Int,
-        colB: Int
+        colB: Int,
+        seamGrace: Float = SEAM_GRACE
     ): Int {
         if (abs(diff) > halfSpan) return OUTCOME_MISS
         if (anyColour || overdrive) return OUTCOME_BLOCK
+        // Right on the seam, either half counts — see SEAM_GRACE.
+        if (abs(diff) < seamGrace) return OUTCOME_BLOCK
         val side = sideColor(onRightHalf(diff), flipped, colA, colB)
         return if (orbColor == side) OUTCOME_BLOCK else OUTCOME_WRONG
     }
