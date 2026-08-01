@@ -42,6 +42,51 @@ Block an orb with the **matching colour**. Block it dead-centre on that half for
   with a "SPEED UP" beat every 25 seconds, then keep creeping.
 - Persistent best score, best combo and run count on the title screen.
 
+## The aiming flaw, and how it was found
+
+Chroma Core shipped before Tether and Fuse, and unlike them its balance was
+never measured — it was tuned by eye. Running a bot through a JavaScript port of
+its rules afterwards showed the game was broken:
+
+| | median run | score | best combo |
+| --- | --- | --- | --- |
+| skilled | 12.9s | 50 | 2.9 |
+| average | 13.4s | 57 | 2.8 |
+| careless | 12.6s | 54 | 2.3 |
+
+Every run was about thirteen seconds and **a careless player did as well as a
+careful one** — the definition of a game with no skill in it.
+
+The cause: centring the shield on an incoming orb is the intuitive play, and it
+lands the orb exactly on the seam where the two halves meet, so which colour
+caught it was a coin flip. `drawShield` then painted a bright white line on that
+seam, making the single worst aiming point the most salient mark on the screen.
+Isolating it, a human-ish player who aims that way survives **8.8 seconds and
+scores 19**.
+
+Three changes:
+
+- **A 10° neutral band at the seam.** Either colour blocks there, so the obvious
+  action is safe. Aiming a half's midpoint still earns PERFECT (its window is
+  16°–42°, clear of the band), so mastery is rewarded rather than required.
+- **The shield marks the half midpoints, not the seam.** The marked spot and the
+  rewarded spot are now the same spot.
+- **A constant spawn radius** instead of the distance to the far corner, which
+  had made your reaction time depend on which direction an orb happened to come
+  from, and left the screen empty for the first seven seconds of every run — 23%
+  of a run had nothing on it at all. Orbs fade in rather than popping.
+
+After:
+
+| | median run | score | best combo |
+| --- | --- | --- | --- |
+| skilled | 64.1s | 6,312 | 56.5 |
+| average | 49.6s | 2,639 | 40.9 |
+| careless | 25.9s | 608 | 14.2 |
+
+Empty screen: 1.7%. Centring is now survivable but scores about half what
+half-aiming does, which is the gradient the game wanted all along.
+
 ## Building
 
 The project has no wrapper JAR checked in.
