@@ -99,6 +99,49 @@ class RulesTest {
         assertEquals(Rules.OUTCOME_BLOCK, Rules.outcome(halfSpan, halfSpan, b, false, false, false, a, b))
     }
 
+    // -------------------------------------------------------- seam grace
+
+    /**
+     * Centring the shield on an orb is the intuitive play, and it lands the orb
+     * exactly where the two halves meet. Without a neutral band there, which
+     * colour catches it is a coin flip, and a player who aims the way the game
+     * visually suggests dies in about nine seconds.
+     */
+    @Test
+    fun anOrbArrivingOnTheSeamIsNeverAWrongColour() {
+        for (orb in listOf(a, b)) {
+            for (flip in listOf(false, true)) {
+                assertEquals(
+                    "an orb dead on the seam was punished",
+                    Rules.OUTCOME_BLOCK, outcome(0f, orb, flipped = flip)
+                )
+                assertEquals(Rules.OUTCOME_BLOCK, outcome(4f, orb, flipped = flip))
+                assertEquals(Rules.OUTCOME_BLOCK, outcome(-4f, orb, flipped = flip))
+            }
+        }
+    }
+
+    @Test
+    fun outsideTheSeamBandTheColourRuleStillBites() {
+        val justOutside = (Rules.SEAM_GRACE * 180f / PI).toFloat() + 3f
+        assertEquals(Rules.OUTCOME_WRONG, outcome(justOutside, a))
+        assertEquals(Rules.OUTCOME_WRONG, outcome(-justOutside, b))
+        assertEquals(Rules.OUTCOME_BLOCK, outcome(justOutside, b))
+        assertEquals(Rules.OUTCOME_BLOCK, outcome(-justOutside, a))
+    }
+
+    @Test
+    fun seamGraceDoesNotRescueAnOrbTheShieldIsNotCovering() {
+        assertEquals(Rules.OUTCOME_MISS, outcome(150f, a))
+        assertEquals(Rules.OUTCOME_MISS, outcome(-150f, b))
+    }
+
+    @Test
+    fun theSeamBandIsNarrowerThanAHalfSoAimingStillMatters() {
+        assertTrue("the neutral band swallowed the whole shield", Rules.SEAM_GRACE < halfSpan * 0.5f)
+        assertTrue(Rules.SEAM_GRACE > 0f)
+    }
+
     // ----------------------------------------------------------- perfect
 
     @Test
