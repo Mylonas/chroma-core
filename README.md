@@ -127,4 +127,4 @@ app/src/main/java/com/mikmy/chromacore/
 Tuning knobs live at the top of `Game.kt` (`perfectWindow`, `comboForOverdrive`,
 `overdriveTime`, `maxHp`) and in `updatePlay` / `spawnOrb` for the difficulty ramp.
 
-- minSdk 26, targetSdk 34, portrait only.
+- minSdk 26, targetSdk 35, portrait only.
