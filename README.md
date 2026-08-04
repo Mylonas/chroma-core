@@ -4,8 +4,9 @@ A one-thumb arcade survival game for Android. Neon orbs converge on your core fr
 every direction; you spin a two-tone shield around it and swap its colours to catch
 them. Miss one — or catch it on the wrong colour — and the core takes a hit.
 
-No game engine, no third-party dependencies: pure Kotlin on a `SurfaceView` canvas,
-with procedurally synthesised sound (no audio assets at all).
+No game engine: pure Kotlin on a `SurfaceView` canvas, with procedurally
+synthesised sound (no audio assets at all). The only third-party code is the
+AdMob SDK.
 
 ## How it plays
 
@@ -86,6 +87,22 @@ After:
 
 Empty screen: 1.7%. Centring is now survivable but scores about half what
 half-aiming does, which is the gradient the game wanted all along.
+
+## Ads and shipping
+
+Interstitials on game over via the AdMob GMA Next-Gen SDK, plus the UMP consent
+SDK for EEA users. Frequency capped so it does not wreck a one-more-go game:
+nothing for the first three runs, then at most one per three runs and never
+within 90 seconds of the last. Every SDK call is wrapped, so no ad failure or
+missing Play Services can affect the game — verified by a CI emulator run on an
+image with no Play Services at all.
+
+Ad unit IDs come from Gradle properties and default to Google's official test
+IDs, so nothing real is in git, and debug builds are pinned to test IDs because
+serving yourself live ads gets AdMob accounts suspended.
+
+**[PLAYSTORE.md](PLAYSTORE.md)** is the step-by-step release guide;
+**[PRIVACY.md](PRIVACY.md)** is the privacy policy template Play requires.
 
 ## Building
 
