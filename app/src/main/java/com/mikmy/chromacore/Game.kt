@@ -393,6 +393,9 @@ class Game(ctx: Context, private val sfx: Sfx) {
         if (hp <= 0) gameOver()
     }
 
+    /** Set by MainActivity so a finished run can offer an interstitial. */
+    @JvmField var onRunEnded: (() -> Unit)? = null
+
     private fun gameOver() {
         hp = 0
         phase = Phase.OVER
@@ -410,6 +413,7 @@ class Game(ctx: Context, private val sfx: Sfx) {
         shake = minDim * 0.03f
         sfx.play("gameover", 1f)
         tap(70)
+        onRunEnded?.invoke()
     }
 
     private fun startRun() {

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500">
+  <rect width="1024" height="500" fill="#05060E"/>
+  <g transform="translate(120 -6) scale(0.99)">
+    <g transform="scale(0.98)">  <circle cx="256" cy="256" r="132" fill="none" stroke="#00E5FF" stroke-width="38" stroke-linecap="round"
+          stroke-dasharray="415 415" transform="rotate(-90 256 256)"/>
+  <circle cx="256" cy="256" r="132" fill="none" stroke="#FF2E88" stroke-width="38" stroke-linecap="round"
+          stroke-dasharray="415 415" transform="rotate(90 256 256)"/>
+  <circle cx="256" cy="256" r="46" fill="#F2F6FF"/>
+  <circle cx="256" cy="256" r="24" fill="#7FA8FF"/></g>
+  </g>
+  <text x="640" y="250" font-family="Arial Black, Arial, sans-serif" font-size="86" font-weight="900"
+        fill="#FFFFFF" dominant-baseline="middle">CHROMA CORE</text>
+</svg>
