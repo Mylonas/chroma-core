@@ -1,0 +1,87 @@
+name: Sync store listing
+
+# One-off automation: captures the game running on an emulator, grabs a
+# handful of screenshots, and pushes the listing text (title/descriptions)
+# plus the icon, feature graphic and screenshots straight to the Play
+# Developer API. No Play Console UI, no browser — everything runs on the
+# GitHub-hosted runner.
+#
+# Needs PLAY_SERVICE_ACCOUNT_JSON (same secret publish.yml / play-status.yml
+# use), and that service account needs "Manage store presence" permission in
+# Play Console -> Users and permissions — a separate grant from the
+# "Release apps to testing tracks" permission the publish workflow needs.
+
+on:
+  workflow_dispatch:
+    inputs:
+      language:
+        description: "Play listing language"
+        default: "en-US"
+      screenshotCount:
+        description: "How many captured screenshots to upload (2-8)"
+        default: "4"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.11.1"
+
+      - name: Build debug APK
+        run: gradle --no-daemon assembleDebug
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Capture screenshots on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: default
+          arch: x86_64
+          profile: pixel_6
+          ram-size: 4096M
+          disable-animations: false
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -no-boot-anim -camera-back none
+          script: bash .github/scripts/play.sh com.mikmy.chromacore
+
+      - name: Sync listing text and images to Play
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          PACKAGE: com.mikmy.chromacore
+          LANGUAGE: ${{ inputs.language }}
+          SCREENSHOT_COUNT: ${{ inputs.screenshotCount }}
+          TITLE: "Chroma Core"
+          SHORT_DESCRIPTION: "Spin a two-tone shield. Match the colour. Protect the core."
+          FULL_DESCRIPTION: |
+            Neon orbs converge on your core from every direction. Spin a two-tone shield around it and swap its colours to catch them - miss one, or catch it on the wrong colour, and the core takes a hit.
+
+            One thumb, two controls:
+            - Drag anywhere to spin the shield
+            - Tap to swap which half is cyan and which is magenta
+
+            That's the entire game. No upgrades to grind, no energy to wait out, no second currency to buy. Just you, a rotating shield, and a core that's counting on you.
+
+            Chroma Core is built with no game engine at all - pure Kotlin on a canvas, with sound synthesised in code rather than recorded. It's small, it's fast to load, and it asks nothing of your phone.
+
+            Free to play, supported by occasional interstitial ads between runs - never during a run, and never more than once every few minutes. No account, no login, no data collected beyond what the ads SDK needs to function.
+
+            How long can you keep the core alive?
+        run: |
+          python3 -m pip install --quiet google-auth requests
+          python3 .github/scripts/sync_store_listing.py
