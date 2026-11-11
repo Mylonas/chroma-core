@@ -50,6 +50,9 @@ class Game(ctx: Context, private val sfx: Sfx) {
 
     private var phase = Phase.TITLE
 
+    /** True while the title screen is showing. */
+    val onTitle: Boolean get() = phase == Phase.TITLE
+
     private var w = 1f
     private var h = 1f
     private var cx = 0f
